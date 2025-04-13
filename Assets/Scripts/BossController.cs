@@ -7,16 +7,14 @@ public class BossController : MonoBehaviour
     public AudioClip fireSound;
     public AudioSource audioSource;
 
-
     public Transform player;
     public GameObject bulletPrefab;
     public Transform firePoint;
 
-    public GameObject laserPrefab; 
+    public GameObject laserPrefab;
     public Transform laserContainer;
 
     public float rotationSpeed = 10f;
-
 
     public float bulletCooldown = 2f;
     public float bulletSpeed = 25f;
@@ -33,12 +31,28 @@ public class BossController : MonoBehaviour
     private float laserTimer;
     private bool isFiringLaser = false;
 
+    void Start()
+    {
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                player = playerObj.transform;
+        }
+    }
+
     void Update()
     {
-        transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
-
-
-        if (player == null) return;
+        if (player != null)
+        {
+            Vector3 direction = player.position - transform.position;
+            direction.y = 0f;
+            if (direction != Vector3.zero)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, rotationSpeed * Time.deltaTime);
+            }
+        }
 
         bulletTimer -= Time.deltaTime;
         laserTimer -= Time.deltaTime;
@@ -95,18 +109,13 @@ public class BossController : MonoBehaviour
         isFiringLaser = false;
     }
 
-
     void CreateLaser(Vector3 direction, string name)
     {
         GameObject laser = Instantiate(laserPrefab, laserContainer);
         laser.name = name;
 
         laser.transform.rotation = Quaternion.LookRotation(direction);
-
-        
         laser.transform.localScale = new Vector3(laserWidth, laserWidth, laserLength);
-
-      
         laser.transform.position = firePoint.position + direction.normalized * (laserLength / 2f);
     }
 }
